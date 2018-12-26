@@ -161,7 +161,7 @@ def get_naver_stock_list():
     except Exception as e:
         print('error: Error occurred in get_stock_list, scraping to make df\n', e)
 
-def start_stock(interval):
+def start_stock():
     global sl, th_list
     
     now = strftime("%H%M%S", localtime())
@@ -176,13 +176,14 @@ def start_stock(interval):
         return True
     
     if is_working_time() and is_working_date():
-        print('[FRGN] Starting... %s' % now);
+        print('[start] Starting... %s' % now);
         t1 = run_frgn(sl); t1.setName('frgn_%s' % now); t1.start()
         t2 = run_sise(sl); t2.setName('sise_%s' % now); t2.start()
-        t3 = threading.Timer(interval, start_stock); t3.setName('start_%s' % now); t3.start()
-        th_list.extend([t1, t2, t3])  # 3분마다 실행
+        t3 = threading.Timer(180, start_stock); t3.setName('start_%s' % now); t3.start()
+        #th_list.extend([t1, t2, t3])  # 3분마다 실행
     else:
-        print('[FRGN] Out of working time... %s' % now)
+        t3 = threading.Timer(180, start_stock); t3.setName('start_%s' % now); t3.start()
+        #th_list.extend([t3])  # 3분마다 실행
 
 def txt_to_aws():
     def df_to_aws(df, tbname):
@@ -210,13 +211,18 @@ def txt_to_aws():
 
 def main(argv):
     # 1 기본 디렉토리 이동
-    os.chdir(r'C:\Users\taeil\Documents\get_stockpy')
+    # os.chdir(r'C:\Users\taeil\Documents\get_stockpy') # home
+    os.chdir(r'C:\aws_getstockpy')                      # aws_kyaksik
+    
     # 2 종목리스트 입수
     sl = get_naver_stock_list(); #sl.to_csv('naver_stock_list.txt', header=None, index=None, sep='|', mode='a')
-    sl = list(sl.where(sl.입수일자==sl['입수일자'].max())['업체코드'].sort_values())
+    sl = sl.where(sl.입수일자==sl['입수일자'].max())['업체코드'].sort_values()[0:500]
+    sl = list(sl)
+    print('[sl] {0} stocks collected ...\n'.format(len(sl)))
+    
     # 3 주가스크래핑 (600초 간격)
     th_list = []
-    t = start_stock(600)  # interval in seconds
+    t = start_stock()  # interval in seconds
     th_list.append(t)
     
     # 4 DB저장 (aws insert)
@@ -226,11 +232,10 @@ if __name__ == "__main__":
     main(sys.argv[1:])
 
 
-sl.where(sl.입수일자==sl['입수일자'].max())['업체코드'].sort_values()
+
 
 
 #dd = pd.DataFrame(sl)
 #dd.columns = ['STOCK_CODE']
 #dd.assign(FB=dd['STOCK_CODE'].str.slice(0,2)).groupby('FB').count().plot()
-
 
