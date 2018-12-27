@@ -161,8 +161,8 @@ def get_naver_stock_list():
     except Exception as e:
         print('error: Error occurred in get_stock_list, scraping to make df\n', e)
 
-def start_stock():
-    global sl, th_list
+def start_stock(sl):
+    global th_list
     
     now = strftime("%H%M%S", localtime())
     def is_working_time():
@@ -182,6 +182,7 @@ def start_stock():
         t3 = threading.Timer(180, start_stock); t3.setName('start_%s' % now); t3.start()
         #th_list.extend([t1, t2, t3])  # 3분마다 실행
     else:
+        print('[start] out of working time... %s' % now);
         t3 = threading.Timer(180, start_stock); t3.setName('start_%s' % now); t3.start()
         #th_list.extend([t3])  # 3분마다 실행
 
@@ -222,7 +223,7 @@ def main(argv):
     
     # 3 주가스크래핑 (600초 간격)
     th_list = []
-    t = start_stock()  # interval in seconds
+    t = start_stock(sl)  # interval in seconds
     th_list.append(t)
     
     # 4 DB저장 (aws insert)
