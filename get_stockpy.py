@@ -189,7 +189,7 @@ def start_stock(sl):
 def txt_to_aws():
     def df_to_aws(df, tbname):
         pymysql.install_as_MySQLdb()
-        eng = create_engine("mysql+mysqldb://bogard75:1!gkskgksk@getstockpy.cwlv0262o99p.us-east-2.rds.amazonaws.com/getstockpy", encoding='utf-8')
+        eng = create_engine("mysql+mysqldb://bogard75:--mypassword--@getstockpy.cwlv0262o99p.us-east-2.rds.amazonaws.com/getstockpy", encoding='utf-8')
         conn = eng.connect()
     
         try:
